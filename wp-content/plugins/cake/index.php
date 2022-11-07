@@ -9,7 +9,27 @@ Author: Sikandar Maqbool
 */
 define('CAKE_Path', plugin_dir_path(__FILE__));
 include_once(CAKE_Path . 'frontend.php');
-include_once(CAKE_Path . 'database.php');
+register_activation_hook( __FILE__, 'cakesTable');
+
+
+function cakesTable() {
+    global $wpdb;
+
+    $charset_collate = $wpdb->get_charset_collate();
+    $table_name = $wpdb->prefix . 'cakes_list';
+    $sql = "CREATE TABLE `$table_name` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(220) DEFAULT NULL,
+  `recipe` varchar(220) DEFAULT NULL,
+    `attachment_id` varchar(220) DEFAULT NULL,
+  PRIMARY KEY(id)
+  ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  ";
+    if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+    }
+}
 
 add_action('admin_menu', 'addAdminPageContent');
 
@@ -54,6 +74,7 @@ function cakesAdminPage()
     }
     ?>
     <div class="wrap">
+    <?php wp_enqueue_media(); ?>
     <h2>Cakes List</h2>
     <?php if (!isset($_GET['upt'])) { ?>
         <table class="wp-list-table widefat striped">
@@ -87,7 +108,7 @@ function cakesAdminPage()
               <tr>
                 <td width='25%'>$print->id</td>
                 <td width='25%'>$print->name</td>
-                <td width='25%'>$print->recipe $print->attachment_id </td>
+                <td width='25%'>$print->recipe</td>
               "; ?>
                 <td> <?php wp_enqueue_media(); ?>
                     <img src='<?php echo wp_get_attachment_url($print->attachment_id); ?>' width='200'>
@@ -158,7 +179,7 @@ function cakesAdminPage()
     <script type='text/javascript'>
         jQuery(document).ready(function ($) {
             var file_frame;
-            var wp_media_post_id = wp.media.model.settings.post.id; // Store the old id
+            var wp_media_post_id =  0; //wp.media.model.settings.post.id; // Store the old id
             var set_to_post_id = <?php echo $my_saved_attachment_post_id; ?>; // Set this
             // jQuery('.upload_image_button').on('click', function( event ){
 
